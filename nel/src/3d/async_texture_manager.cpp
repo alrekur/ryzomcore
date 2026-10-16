@@ -57,8 +57,11 @@ CAsyncTextureManager::CTextureEntry::CTextureEntry()
 void		CAsyncTextureManager::CTextureEntry::createCoarseBitmap()
 {
 	// the texture must exist.
-	nlassert(Texture);
-	nlassert(Texture->getSize()>0);
+	if (!Texture || Texture->getSize() == 0)
+	{
+		CoarseBitmap.reset();
+		return;
+	}
 
 	// copy the bitmap.
 	CoarseBitmap= *Texture;

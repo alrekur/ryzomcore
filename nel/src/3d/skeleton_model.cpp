@@ -977,7 +977,7 @@ void		CSkeletonModel::computeLodTexture()
 					}
 
 					// So if we have no bmp here, build with material color, else build a texture
-					if(!coarseBitmap)
+					if(!coarseBitmap || coarseBitmap->getSize() == 0 || coarseBitmap->getWidth() == 0 || coarseBitmap->getHeight() == 0)
 					{
 						dstBmp.build(mbi->Materials[i].getDiffuse());
 					}

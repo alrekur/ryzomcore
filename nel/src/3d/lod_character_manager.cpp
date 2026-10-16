@@ -832,19 +832,51 @@ void			CLodCharacterTmpBitmap::build(const NLMISC::CBitmap &bmpIn)
 {
 	uint	width= bmpIn.getWidth();
 	uint	height= bmpIn.getHeight();
-	nlassert(width>0 && width<=256);
-	nlassert(height>0 && height<=256);
+	if (width == 0 || height == 0)
+	{
+		reset();
+		return;
+	}
+
+	// convert the bitmap to RGBA first so it can be resampled if needed
+	CBitmap		bmp= bmpIn;
+	bmp.convertToType(CBitmap::RGBA);
+
+	// Determine power-of-2 dimensions bounded to <= 256
+	uint pw = getPowerOf2(width);
+	uint ph = getPowerOf2(height);
+	while (pw > 8 || ph > 8)
+	{
+		if (pw > 0) pw--;
+		if (ph > 0) ph--;
+	}
+	uint targetWidth = 1U << pw;
+	uint targetHeight = 1U << ph;
+
+	if (bmp.getWidth() != targetWidth || bmp.getHeight() != targetHeight)
+	{
+		bmp.resample(targetWidth, targetHeight);
+	}
+
+	width = bmp.getWidth();
+	height = bmp.getHeight();
+
+	if (width == 0 || height == 0 || bmp.getPixels().empty())
+	{
+		reset();
+		return;
+	}
+
+	nlassert(width > 0 && width <= 256);
+	nlassert(height > 0 && height <= 256);
 
 	// resize bitmap.
 	_Bitmap.resize(width*height);
-	_WidthPower= getPowerOf2(width);
+	_WidthPower= pw;
 	// compute shift
-	_UShift= 8-getPowerOf2(width);
-	_VShift= 8-getPowerOf2(height);
+	_UShift= 8-pw;
+	_VShift= 8-ph;
 
-	// convert the bitmap.
-	CBitmap		bmp= bmpIn;
-	bmp.convertToType(CBitmap::RGBA);
 	CRGBA	*src= (CRGBA*)&bmp.getPixels()[0];
 	CRGBA	*dst= _Bitmap.getPtr();
 	for(sint nPix= width*height;nPix>0;nPix--, src++, dst++)

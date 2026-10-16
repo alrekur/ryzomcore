@@ -61,18 +61,21 @@ public:
 	// free memory. 1*1 pixel with black stored
 	void			reset();
 	/** build from a bitmap (NB: converted internally). Should be not so big (eg:64*64).
-	 *	Width and height must be <=256
+	 *	If width or height > 256 or not power of 2, it is automatically resampled.
 	 */
 	void			build(const NLMISC::CBitmap &bmp);
 	// build from a single color (for untextured materials)
 	void			build(CRGBA col);
 
 	// get a pixel from this bitmap.
-	CRGBA			getPixel(uint8 U, uint8 V)
+	CRGBA			getPixel(uint8 U, uint8 V) const
 	{
 		U>>= _UShift;
 		V>>= _VShift;
-		return _Bitmap[(V<<_WidthPower) + U];
+		uint idx = (V<<_WidthPower) + U;
+		if (idx < _Bitmap.size())
+			return _Bitmap[idx];
+		return CRGBA::Black;
 	}
 
 // **************
